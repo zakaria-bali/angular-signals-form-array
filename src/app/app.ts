@@ -23,7 +23,7 @@ export class App {
     const employeeForm = new FormGroup({
       name: new FormControl('', { validators: [Validators.required, Validators.minLength(2)], nonNullable: true }),
       email: new FormControl('', { validators: [Validators.required, Validators.minLength(2), Validators.email], nonNullable: true }),
-      age: new FormControl(0, { validators: [Validators.required, Validators.min(18), Validators.email], nonNullable: true }),
+      age: new FormControl(0, { validators: [Validators.required, Validators.min(18)], nonNullable: true }),
     })
 
     if (employee) {
