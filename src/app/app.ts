@@ -50,7 +50,10 @@ export class App {
   onDeleteEmployee(index: number) {
     this.enterpriseData.update((enterprise) => ({
       ...enterprise,
-      employees: [ ...enterprise.employees.filter((_,i) => index !== i )]
+      employees: [ 
+        ...enterprise.employees.slice(0, index),
+        ...enterprise.employees.slice(index + 1)
+      ]
     }))
   }
 }
