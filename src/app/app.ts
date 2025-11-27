@@ -1,45 +1,56 @@
-import { Component } from '@angular/core';
-import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, signal } from '@angular/core';
+
 import { Employee } from './core/models/employee';
+import { Enterprise } from './core/models/enterprise';
+import { applyEach, email, Field, form, min, minLength, required } from '@angular/forms/signals';
+
 
 @Component({
   selector: 'app-root',
-  imports: [ReactiveFormsModule],
+  imports: [Field],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
 export class App {
 
-  enterpriseForm = new FormGroup({
-    name: new FormControl('', [Validators.required, Validators.minLength(2)]),
-    employees: new FormArray([])
+  enterpriseData = signal<Enterprise>({
+    name: '',
+    employees: []
+  })
+
+  enterpriseForm = form(this.enterpriseData, (schemaPath) => {
+    required(schemaPath.name);
+    minLength(schemaPath.name, 2);
+    applyEach(schemaPath.employees, (employeePath) =>{
+      required(employeePath.name);
+      minLength(employeePath.name, 2);
+
+      required(employeePath.email);
+      minLength(employeePath.email, 2);
+      email(employeePath.email);
+
+      required(employeePath.age);
+      min(employeePath.age, 18);
+    })
   });
 
-  get employees(): FormArray {
-    return this.enterpriseForm.get('employees') as FormArray;
-  }
 
   addEmployee(employee?: Employee) {
-    const employeeForm = new FormGroup({
-      name: new FormControl('', { validators: [Validators.required, Validators.minLength(2)], nonNullable: true }),
-      email: new FormControl('', { validators: [Validators.required, Validators.minLength(2), Validators.email], nonNullable: true }),
-      age: new FormControl(0, { validators: [Validators.required, Validators.min(18)], nonNullable: true }),
-    })
-
-    if (employee) {
-      employeeForm.setValue(employee);
-    }
-
-    this.employees.push(employeeForm);
+    this.enterpriseData.update((enterprise) => ({
+      ...enterprise,
+      employees: [... enterprise.employees, employee ?? { name: '', email: '', age: 0 }]
+    }))
   }
-  
 
   onSubmit() {
     console.log('Form Value')
-    console.log(this.enterpriseForm.getRawValue());
+    console.log(this.enterpriseData());
   }
 
   onDeleteEmployee(index: number) {
-    this.employees.removeAt(index);
+    this.enterpriseData.update((enterprise) => ({
+      ...enterprise,
+      employees: [ ...enterprise.employees.filter((_,i) => index !== i )]
+    }))
   }
 }
